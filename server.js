@@ -1,23 +1,21 @@
+require("dotenv").config()
 const express = require('express')
-const app = express()
 const bodyParser = require('body-parser')
-
 const cors = require('cors')
-
 const mongoose = require('mongoose')
-mongoose.connect(process.env.MLAB_URI || 'mongodb://localhost/exercise-track' )
+
+const app = express()
+
+mongoose.connect(process.env.MONGOLAB_URI )
 
 app.use(cors())
-
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
-
-
 app.use(express.static('public'))
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
-
 
 // Not found middleware
 app.use((req, res, next) => {
@@ -41,6 +39,21 @@ app.use((err, req, res, next) => {
   }
   res.status(errCode).type('txt')
     .send(errMessage)
+})
+
+// route for creating a new user
+app.post('/api/exercise/new-user', (req, res) => {
+
+})
+
+// route for creating a new exercise
+app.post('/api/exercise/add', (req, res) => {
+  
+})
+
+// route for getting an exercise
+app.get('/api/exercise/:log', (req, res) => {
+  
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
