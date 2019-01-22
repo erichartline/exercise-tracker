@@ -11,7 +11,7 @@ const Schema = mongoose.Schema
 const userSchema = new Schema({
   username: { type: String, required: true, unique: true }
 })
-const User = mongoose.model("User", userSchema)
+const UserModel = mongoose.model("User", userSchema)
 
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 // route for creating a new user
 app.post("/api/exercise/new-user", (req, res) => {
   const user = req.body.username
-  const newUser = new User({
+  const newUser = new UserModel({
     username: user
   })
 
@@ -46,14 +46,22 @@ app.post("/api/exercise/new-user", (req, res) => {
   })
 })
 
+// route for getting all users
+app.get("/api/exercise/users", async (req, res) => {
+  try {
+    const data = await UserModel.find({})
+    res.status(200).json(data)
+  } catch (err) {
+    console.error("Error getting all users from database")
+    throw err
+  }
+})
+
 // route for creating a new exercise
 app.post("/api/exercise/add", (req, res) => {})
 
 // route for getting an exercise
 app.get("/api/exercise/:log", (req, res) => {})
-
-// route for getting all users
-app.get("/api/exercise/users", (req, res) => {})
 
 // Not found middleware
 app.use((req, res, next) => {
