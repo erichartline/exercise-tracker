@@ -29,21 +29,25 @@ app.post("/api/exercise/new-user", (req, res) => {
     username: user
   })
 
-  newUser.save((err, newUser) => {
-    if (err) {
-      if (err.code === 11000) {
-        // username already in db
-        res.send("Duplicate username, please try another.")
+  if (user === "") {
+    res.send("You must enter a username.")
+  } else {
+    newUser.save((err, newUser) => {
+      if (err) {
+        if (err.code === 11000) {
+          // username already in db
+          res.send("Duplicate username, please try another.")
+        } else {
+          res.send("Error saving username to database.")
+        }
+        return console.error(err)
       } else {
-        res.send("Error saving username to database.")
+        // we're good, save the unique username
+        res.json(newUser)
+        return console.log("successfully saved username", user)
       }
-      return console.error(err)
-    } else {
-      // we're good, save the unique username
-      res.json(newUser)
-      return console.log("successfully saved username", user)
-    }
-  })
+    })
+  }
 })
 
 // route for getting all users
