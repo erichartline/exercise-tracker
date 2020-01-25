@@ -116,15 +116,20 @@ app.post("/api/exercise/add", (req, res) => {
   });
 });
 
-// route for getting an exercise
+// route for getting exercise log
 app.get("/api/exercise/log", (req, res) => {
-  /**
-   * I can retrieve part of the log of any user by also passing along optional parameters of from & to or limit. (Date format yyyy-mm-dd, limit = int)
-   */
-  if (!req.query.userId) {
+  let { userId, from, to, limit } = req.query;
+  from = new Date(from || null);
+  if (to) {
+    to = new Date(to);
+  } else {
+    to = new Date();
+  }
+  limit = Number(limit) || null;
+  if (!userId) {
     return res.send("Please enter a user ID.");
   }
-  UserModel.findOne({ _id: req.query.userId }, (err, user) => {
+  UserModel.findOne({ _id: userId }, (err, user) => {
     if (err) {
       console.log(err);
       return res.send("Error finding user ID.");
@@ -133,20 +138,21 @@ app.get("/api/exercise/log", (req, res) => {
       return res.send("Could not find user with this ID.");
     }
     const userObj = user.toObject();
-    ExerciseModel.find({ userId: req.query.userId }, (err, exercise) => {
-      const exerciseObj = {
-        log: [],
-        count: 0
-      };
-      exercise.forEach(item => {
-        exerciseObj.log.push(item);
-        exerciseObj.count++;
+    ExerciseModel.find({ userId: userId, date: { $gt: from, $lt: to } })
+      .limit(limit)
+      .exec((err, exercise) => {
+        const exerciseObj = {
+          log: [],
+          count: 0
+        };
+        exercise.forEach(item => {
+          exerciseObj.log.push(item);
+          exerciseObj.count++;
+        });
+        const mergedObj = Object.assign(userObj, exerciseObj);
+        return res.send(mergedObj);
       });
-      const mergedObj = Object.assign(userObj, exerciseObj);
-      return res.send(mergedObj);
-    });
   });
-  console.log(req.query);
 });
 
 // Not found middleware
