@@ -13,7 +13,7 @@ const userSchema = new Schema({
   username: { type: String, required: true, unique: true }
 });
 const exerciseSchema = new Schema({
-  userId: { type: String, required: true, unique: true },
+  userId: { type: String, required: true },
   description: { type: String, required: true },
   duration: { type: Number, required: true },
   date: { type: Date, required: false }
@@ -119,11 +119,34 @@ app.post("/api/exercise/add", (req, res) => {
 // route for getting an exercise
 app.get("/api/exercise/log", (req, res) => {
   /**
-   * I can retrieve a full exercise log of any user by getting /api/exercise/log with a parameter of userId(_id). App will return the user object with added array log and count (total exercise count).
-   *
    * I can retrieve part of the log of any user by also passing along optional parameters of from & to or limit. (Date format yyyy-mm-dd, limit = int)
    */
-  // console.log(req.params);
+  if (!req.query.userId) {
+    return res.send("Please enter a user ID.");
+  }
+  UserModel.findOne({ _id: req.query.userId }, (err, user) => {
+    if (err) {
+      console.log(err);
+      return res.send("Error finding user ID.");
+    }
+    if (user === null) {
+      return res.send("Could not find user with this ID.");
+    }
+    const userObj = user.toObject();
+    ExerciseModel.find({ userId: req.query.userId }, (err, exercise) => {
+      const exerciseObj = {
+        log: [],
+        count: 0
+      };
+      exercise.forEach(item => {
+        exerciseObj.log.push(item);
+        exerciseObj.count++;
+      });
+      const mergedObj = Object.assign(userObj, exerciseObj);
+      return res.send(mergedObj);
+    });
+  });
+  console.log(req.query);
 });
 
 // Not found middleware
